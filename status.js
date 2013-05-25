@@ -1,60 +1,17 @@
-function statusJS (options) {
-
+function statusJS(options) {
   var defaults = {
-       user      : 'yeahstatuswhat',  // Twitter username
-       problem   : '[PROBLEM]',       // Problem prefix
-       solved    : '[SOLVED]',        // Solved prefix
-       info      : '[INFO]',          // Info prefix
-       delay     : 3000,              // FadeOut delay
-       sticky    : false,             // only takes effect for problem updates; Solved/Info updates fade out after the delay by default
-       debug     : true
+    user      : 'yeahstatuswhat',  // Twitter username
+    problem   : '[PROBLEM]',       // Problem prefix
+    solved    : '[SOLVED]',        // Solved prefix
+    info      : '[INFO]',          // Info prefix
+    delay     : 3000,              // FadeOut delay
+    sticky    : true,              // only takes effect for problem updates; Solved/Info updates fade out after the delay by default
+    debug     : false
   };
 
-  o = $.extend(defaults, options); 
+  var o = $.extend(defaults, options);
 
-  css = 
-  $('<style type="text/css"> \
-      .notification { \
-        position: fixed; \
-        right: 20px; \
-        top: 20px; \
-        background: rgba(250,250,250,.9); \
-        box-shadow: 0 0 0px 1px rgba(0,0,0,.2),0 1px 1px rgba(0,0,0,.3),0 1px 2px rgba(0,0,0,.1),0 1px 0 rgba(255,255,255,.8) inset,0 -1px 0 rgba(0,0,0,.1) inset,0 -40px 40px -40px rgba(0,0,0,.2) inset; \
-        border-radius: 4px; \
-        width: 200px; \
-        font-family: "Helvetica Neue", sans-serif; \
-        padding: 10px 10px 10px 60px; \
-        color: #333; \
-        text-decoration: none; \
-      } \
-      .notification:before { \
-        position: absolute; \
-        left: 0; \
-        right: 0; \
-        content: ":)"; \
-        margin: -4px 20px; \
-        font-size: 36px; \
-      } \
-      .notification.problem:before { \
-        content: ":("; \
-      } \
-      .notification.info:before { \
-        content: "!!"; \
-      } \
-      .notification-title { \
-        margin: 0 0 5px 0; \
-        padding: 0; \
-        font-size: 14px; \
-      } \
-      .notification-content { \
-        margin: 0; \
-        padding: 0; \
-        font-size: 12px; \
-      } \
-      </style>');
-
-  $('head').append(css);
-
+  // Get latest tweet
   $.getJSON("https://api.twitter.com/1/statuses/user_timeline/"+o.user+".json?count=1&include_rts=1&callback=?", function(data) {
      var latestTweet = data[0].text;
      var latestTweetID = data[0].id_str;
@@ -63,11 +20,11 @@ function statusJS (options) {
   });
 
   function notificationTest(tweet, id) {
-    
+
     var notificationID = id;
     var notificationType;
     
-    // get type of update
+    // Get type of update
     if (tweet.indexOf(o.problem) != -1) {
       notificationType = o.problem;
     } else if (tweet.indexOf(o.solved) != -1) {
@@ -78,14 +35,17 @@ function statusJS (options) {
       notificationType = false;
     }
 
-    // if type is either problem/solved
+    // Test if type is [problem], [info] or [solved]
     if (notificationType !== false) {
       c('Tweet is a notification!');
-      // get notification content
+      // Get notification content
       var notificationContent = tweet.split(notificationType)[1].replace('\ ','');
       c('Notification type: '+notificationType+'\nNotification remaining content: '+notificationContent);
 
-      // display notification
+      // Inject CSS
+      $('head').append(css);
+
+      // Display notification
       renderNotification(notificationType, notificationContent, notificationID);
 
     } else {
@@ -99,8 +59,8 @@ function statusJS (options) {
     var notificationTitle   = type.replace(/[^a-z0-9\s]/gi, '').toProperCase();                         // pretty notification title
     var notificationContent = content;
 
-    // Test if title is given (text in brackets)
-    // if not, notification type will be used as title, as specified above
+    // Test if title is stated (text in brackets)
+    // if not, notification type will be used as title
     if (notificationContent.match(/\[(.*)\]/)) {
       notificationTitle = notificationContent.split('[')[1].split(']')[0];
       notificationContent = notificationContent.replace(/\[(.*)\]/,'').replace('\ ','');
@@ -109,34 +69,43 @@ function statusJS (options) {
 
     // Markup for notification bubble
     var notificationMarkup  = 
-    $('<a href="https://twitter.com/'+o.user+'/status/'+notificationID+'" class="notification '+notificationStyle+'"> \
-         <h1 class="notification-title">'+notificationTitle+'</h1> \
-         <span class="notification-content">'+notificationContent+'</span> \
-       </a>');
+    $('<a href="https://twitter.com/'+o.user+'/status/'+notificationID+'" class="notification '+notificationStyle+'">\
+<h1 class="notification-title">'+notificationTitle+'</h1>\
+<span class="notification-content">'+notificationContent+'</span>\
+</a>');
 
+    // Test if notification type is [problem]
     if (type == o.problem) {
       c('Show notification!') 
+
       // append notification bubble to dom
       $('body').append(notificationMarkup);
       $('.notification').hide().fadeIn();
 
+    // Test if notification type is [solved] or [info]
     } else if (type == o.solved || type == o.info) {
+
       // get id stored in cookie
       cookieID = readCookie('id');
       c('Cookie ID: '+cookieID);
 
+      // Test if notification was shown before
       if (cookieID == notificationID) {
-        c('Notification already posted!') 
+        c('Notification already posted!');
       } else {
         c('Set cookie: '+notificationID);
+        
+        // set cookie
         createCookie('id', notificationID, 1);
         c('Show notification!')
+
+        // append notification bubble to dom
         $('body').append(notificationMarkup);
         $('.notification').hide().fadeIn();
       }
     }
 
-    // remove after 2000 ms if problem is solved or info
+    // remove notification if notification type is [solved] or [info]
     if (type == o.solved || type == o.info || o.sticky == false) {
       setTimeout(function() {
         c('Hide notification!')
@@ -155,18 +124,18 @@ function statusJS (options) {
   }
 
   function readCookie(name) {
-      var nameEQ = escape(name) + "=";
-      var ca = document.cookie.split(';');
-      for (var i = 0; i < ca.length; i++) {
-          var c = ca[i];
-          while (c.charAt(0) == ' ') c = c.substring(1, c.length);
-          if (c.indexOf(nameEQ) == 0) return unescape(c.substring(nameEQ.length, c.length));
-      }
-      return null;
+    var nameEQ = escape(name) + "=";
+    var ca = document.cookie.split(';');
+    for (var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) == 0) return unescape(c.substring(nameEQ.length, c.length));
+    }
+    return null;
   }
 
   function eraseCookie(name) {
-      createCookie(name, "", -1);
+    createCookie(name, "", -1);
   }
 
   String.prototype.toProperCase = function () {
@@ -177,4 +146,45 @@ function statusJS (options) {
     if (o.debug == true)
       console.log(m);
   }
+
+  var css =
+$('<style type="text/css">\
+.notification {\
+position: fixed;\
+right: 20px;\
+top: 20px;\
+background: rgba(250,250,250,.9);\
+box-shadow: 0 0 0px 1px rgba(0,0,0,.2),0 1px 1px rgba(0,0,0,.3),0 1px 2px rgba(0,0,0,.1),0 1px 0 rgba(255,255,255,.8) inset,0 -1px 0 rgba(0,0,0,.1) inset,0 -80px 40px -40px rgba(0,0,0,.1) inset;\
+border-radius: 4px;\
+width: 200px;\
+font-family: "Helvetica Neue", sans-serif;\
+padding: 10px 10px 10px 60px;\
+color: #333;\
+text-decoration: none;\
+}\
+.notification:before {\
+position: absolute;\
+left: 0;\
+right: 0;\
+content: ":)";\
+margin: -4px 20px;\
+font-size: 36px;\
+}\
+.notification.problem:before {\
+content: ":(";\
+}\
+.notification.info:before {\
+content: "!!";\
+}\
+.notification-title {\
+margin: 0 0 5px 0;\
+padding: 0;\
+font-size: 14px;\
+}\
+.notification-content {\
+margin: 0;\
+padding: 0;\
+font-size: 12px;\
+}\
+</style>');
 }
