@@ -4,6 +4,8 @@
 
 Problem updates are sticky by default. Solved/Info updates fade out after stated delay and will only be shown once (cookie).
 
+Demo: [http://jsfiddle.net/Ktvaq/](http://jsfiddle.net/Ktvaq/)
+
 #### Required format
 
     [Prefix] [optional title in brackets] status info
