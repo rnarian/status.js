@@ -153,6 +153,7 @@ $('<style type="text/css">\
 position: fixed;\
 right: 20px;\
 top: 20px;\
+background: #fff;\
 background: rgba(250,250,250,.9);\
 box-shadow: 0 0 0px 1px rgba(0,0,0,.2),0 1px 1px rgba(0,0,0,.3),0 1px 2px rgba(0,0,0,.1),0 1px 0 rgba(255,255,255,.8) inset,0 -1px 0 rgba(0,0,0,.1) inset,0 -80px 40px -40px rgba(0,0,0,.1) inset;\
 border-radius: 4px;\
