@@ -1,13 +1,14 @@
 function statusJS(options) {
   var defaults = {
-    user       : 'StatusJS',  // Twitter username
+    user       : 'StatusJS',        // Twitter username
     problem    : '[PROBLEM]',       // Problem prefix
     solved     : '[SOLVED]',        // Solved prefix
     info       : '[INFO]',          // Info prefix
-    delay      : 3000,              // FadeOut delay
+    delay      : 6000,              // FadeOut delay
     sticky     : true,              // only takes effect for problem updates; Solved/Info updates fade out after the delay by default
     expiration : 1,                 // Don't show updates older than this in hours
-    debug      : false
+    domain     : false,             // Cross domain cockie support 
+    debug      : true
   };
 
   var o = $.extend(defaults, options);
@@ -20,6 +21,12 @@ function statusJS(options) {
         'id'         : data[0].id_str,
         'created_at' : data[0].created_at
      }
+
+    if (o.domain) {
+      c('yes');
+    } else {
+      c('no!');
+    }
 
      notificationTest(notification);
   });
@@ -134,7 +141,12 @@ function statusJS(options) {
         date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
         var expires = "; expires=" + date.toGMTString();
     } else var expires = "";
-    document.cookie = escape(name) + "=" + escape(value) + expires + "; path=/";
+    if (o.domain) {
+      document.cookie = escape(name) + "=" + escape(value) + expires + "; path=/; domain="+o.domain+"";
+    } else {
+      document.cookie = escape(name) + "=" + escape(value) + expires + "; path=/";
+    }
+    
   }
 
   function readCookie(name) {
