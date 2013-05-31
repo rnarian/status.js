@@ -8,7 +8,7 @@ function statusJS(options) {
     sticky     : true,              // only takes effect for problem updates; Solved/Info updates fade out after the delay by default
     expiration : 1,                 // Don't show updates older than this in hours
     domain     : false,             // Cross domain cockie support 
-    debug      : true
+    debug      : false
   };
 
   var o = $.extend(defaults, options);

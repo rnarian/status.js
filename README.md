@@ -18,11 +18,16 @@ Demo: [http://jsfiddle.net/Ktvaq/](http://jsfiddle.net/Ktvaq/)
 
 #### Advanced Usage
 
+
+
     statusJS({
-      user    : 'StatusJS',  // Twitter username
-      problem : '[PROBLEM]', // Problem prefix
-      solved  : '[SOLVED]',  // Solved prefix
-      info    : '[INFO]',    // Info prefix
-      delay   : 3000,        // FadeOut delay
-      sticky  : true         // only takes effect for problem updates
+      user       : 'StatusJS',        // Twitter username
+      problem    : '[PROBLEM]',       // Problem prefix
+      solved     : '[SOLVED]',        // Solved prefix
+      info       : '[INFO]',          // Info prefix
+      delay      : 6000,              // FadeOut delay
+      sticky     : true,              // only takes effect for problem updates
+      expiration : 1,                 // Don't show updates older than this in hours
+      domain     : false,             // Cross domain cockie support
+      debug      : false
     });
