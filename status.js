@@ -1,116 +1,130 @@
 function statusJS(options) {
   var defaults = {
-    user      : 'yeahstatuswhat',  // Twitter username
-    problem   : '[PROBLEM]',       // Problem prefix
-    solved    : '[SOLVED]',        // Solved prefix
-    info      : '[INFO]',          // Info prefix
-    delay     : 3000,              // FadeOut delay
-    sticky    : true,              // only takes effect for problem updates; Solved/Info updates fade out after the delay by default
-    debug     : false
+    user       : 'StatusJS',  // Twitter username
+    problem    : '[PROBLEM]',       // Problem prefix
+    solved     : '[SOLVED]',        // Solved prefix
+    info       : '[INFO]',          // Info prefix
+    delay      : 3000,              // FadeOut delay
+    sticky     : true,              // only takes effect for problem updates; Solved/Info updates fade out after the delay by default
+    expiration : 1,                 // Don't show updates older than this in hours
+    debug      : false
   };
 
   var o = $.extend(defaults, options);
 
   // Get latest tweet
   $.getJSON("https://api.twitter.com/1/statuses/user_timeline/"+o.user+".json?count=1&include_rts=1&callback=?", function(data) {
-     var latestTweet = data[0].text;
-     var latestTweetID = data[0].id_str;
-     c('latest Tweet: '+latestTweet+'\nlatest Tweet ID: '+latestTweetID);
-     notificationTest(latestTweet, latestTweetID);
+     
+     var notification = {
+        'text'       : data[0].text,
+        'id'         : data[0].id_str,
+        'created_at' : data[0].created_at
+     }
+
+     notificationTest(notification);
   });
 
-  function notificationTest(tweet, id) {
-
-    var notificationID = id;
-    var notificationType;
+  function notificationTest(notification) {
     
     // Get type of update
-    if (tweet.indexOf(o.problem) != -1) {
-      notificationType = o.problem;
-    } else if (tweet.indexOf(o.solved) != -1) {
-      notificationType = o.solved;
-    } else if (tweet.indexOf(o.info) != -1) {
-      notificationType = o.info;
+    if (notification['text'].indexOf(o.problem) != -1) {
+      notification['type'] = o.problem;
+    } else if (notification['text'].indexOf(o.solved) != -1) {
+      notification['type'] = o.solved;
+    } else if (notification['text'].indexOf(o.info) != -1) {
+      notification['type'] = o.info;
     } else {
-      notificationType = false;
+      notification['type'] = false;
     }
 
-    // Test if type is [problem], [info] or [solved]
-    if (notificationType !== false) {
-      c('Tweet is a notification!');
-      // Get notification content
-      var notificationContent = tweet.split(notificationType)[1].replace('\ ','');
-      c('Notification type: '+notificationType+'\nNotification remaining content: '+notificationContent);
+    var now          = new Date();                           // Now
+    var creationDate = new Date(notification['created_at']); // Notification creation date
+    var expireDate   = o.expiration*1000*60*60;
 
-      // Inject CSS
-      $('head').append(css);
-
-      // Display notification
-      renderNotification(notificationType, notificationContent, notificationID);
-
+    // Test if notification is not older than 1 hour
+    if ((now-creationDate) > expireDate) {
+      c('Notification older than '+o.expiration+' hour')
     } else {
-      c('No Problem/Solved/Info identifier found. Might be a regular tweet...')
+
+      // Test if type is [problem], [info] or [solved]
+      if (notification['type'] !== false) {
+
+        c('tweet is a notification!');
+
+        // Get notification content
+        notification['text'] = notification['text'].split(notification['type'])[1].replace('\ ','');
+
+        // Inject CSS
+        $('head').append(css);
+
+        // Display notification
+        renderNotification(notification);
+
+      } else {
+        c('No Problem/Solved/Info identifier found. Might be a regular tweet...')
+      }
     }
   }
 
-  function renderNotification(type, content, id) {
-    var notificationID      = id;
-    var notificationStyle   = (type == o.problem) ? 'problem' : ((type == o.info) ? 'info' : 'solved'); // css class for styling
-    var notificationTitle   = type.replace(/[^a-z0-9\s]/gi, '').toProperCase();                         // pretty notification title
-    var notificationContent = content;
+  function renderNotification(notification) {
+    // css class for styling
+    notification['class'] = (notification['type'] == o.problem) ? 'problem' : ((notification['type'] == o.info) ? 'info' : 'solved'); 
+    // pretty notification title
+    notification['title'] = notification['type'].replace(/[^a-z0-9\s]/gi, '').toProperCase();
 
     // Test if title is stated (text in brackets)
-    // if not, notification type will be used as title
-    if (notificationContent.match(/\[(.*)\]/)) {
-      notificationTitle = notificationContent.split('[')[1].split(']')[0];
-      notificationContent = notificationContent.replace(/\[(.*)\]/,'').replace('\ ','');
+    // if not, notification['type'] will be used as title
+    if (notification['text'].match(/\[(.*)\]/)) {
+      notification['title'] = notification['text'].split('[')[1].split(']')[0];
+      notification['text'] = notification['text'].replace(/\[(.*)\]/,'').replace('\ ','');
     }
-    c('Notification title: '+notificationTitle+'\nNotification content: '+notificationContent);    
+    c(notification);
+    c('Notification title: '+notification['title']+'\nNotification content: '+notification['text']);    
 
     // Markup for notification bubble
     var notificationMarkup  = 
-    $('<a href="https://twitter.com/'+o.user+'/status/'+notificationID+'" class="notification '+notificationStyle+'">\
-<h1 class="notification-title">'+notificationTitle+'</h1>\
-<span class="notification-content">'+notificationContent+'</span>\
+    $('<a href="https://twitter.com/'+o.user+'/status/'+notification['id']+'" class="notification '+notification['class']+'">\
+<h1 class="notification-title">'+notification['title']+'</h1>\
+<span class="notification-content">'+notification['text']+'</span>\
 </a>');
 
-    // Test if notification type is [problem]
-    if (type == o.problem) {
+    // Test if notification['type'] is [problem]
+    if (notification['type'] == o.problem) {
       c('Show notification!') 
 
       // append notification bubble to dom
       $('body').append(notificationMarkup);
       $('.notification').hide().fadeIn();
 
-    // Test if notification type is [solved] or [info]
-    } else if (type == o.solved || type == o.info) {
+    // Test if notification['type'] is [solved] or [info]
+    } else if (notification['type'] == o.solved || notification['type'] == o.info) {
 
       // get id stored in cookie
       cookieID = readCookie('id');
       c('Cookie ID: '+cookieID);
 
       // Test if notification was shown before
-      if (cookieID == notificationID) {
+      if (cookieID == notification['id']) {
         c('Notification already posted!');
       } else {
-        c('Set cookie: '+notificationID);
+        c('Set cookie: '+notification['id']);
         
         // set cookie
-        createCookie('id', notificationID, 1);
+        createCookie('id', notification['id'], 1);
         c('Show notification!')
 
         // append notification bubble to dom
         $('body').append(notificationMarkup);
         $('.notification').hide().fadeIn();
-      }
-    }
 
-    // remove notification if notification type is [solved] or [info]
-    if (type == o.solved || type == o.info || o.sticky == false) {
-      setTimeout(function() {
-        c('Hide notification!')
-        $('.notification:not(:hover)').fadeOut();
-      }, o.delay);
+        // remove notification if notification notification['type'] is [solved] or [info]
+        if (notification['type'] == o.solved || notification['type'] == o.info || o.sticky == false) {
+          setTimeout(function() {
+            c('Hide notification!')
+            $('.notification:not(:hover)').fadeOut();
+          }, o.delay);
+        }
+      }
     }
   }
 
