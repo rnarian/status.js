@@ -19,14 +19,11 @@ function statusJS(options) {
      var notification = {
         'text'       : data[0].text,
         'id'         : data[0].id_str,
-        'created_at' : data[0].created_at
+        'created_at' : data[0].created_at,
+        'img'        : data[0].user['profile_image_url']
      }
 
-    if (o.domain) {
-      c('yes');
-    } else {
-      c('no!');
-    }
+     console.log(notification['img']);
 
      notificationTest(notification);
   });
@@ -85,12 +82,21 @@ function statusJS(options) {
       notification['title'] = notification['text'].split('[')[1].split(']')[0];
       notification['text'] = notification['text'].replace(/\[(.*)\]/,'').replace('\ ','');
     }
+
+    // Test if url is stated
+    if (notification['text'].match(/(^|\s)((https?:\/\/)?[\w-]+(\.[\w-]+)+\.?(:\d+)?(\/\S*)?)/)) {
+      notification['url'] = notification['text'].match(/((^|\s)((https?:\/\/)?[\w-]+(\.[\w-]+)+\.?(:\d+)?(\/\S*)?))/)[0];
+      console.log(notification['url']);
+    } else {
+      notification['url'] = 'https://twitter.com/'+o.user+'/status/'+notification['id'];
+    }
+
     c(notification);
     c('Notification title: '+notification['title']+'\nNotification content: '+notification['text']);    
 
     // Markup for notification bubble
     var notificationMarkup  = 
-    $('<a href="https://twitter.com/'+o.user+'/status/'+notification['id']+'" class="notification '+notification['class']+'">\
+    $('<a href="'+notification['url']+'" class="notification '+notification['class']+'">\
 <h1 class="notification-title">'+notification['title']+'</h1>\
 <span class="notification-content">'+notification['text']+'</span>\
 </a>');
@@ -101,7 +107,14 @@ function statusJS(options) {
 
       // append notification bubble to dom
       $('body').append(notificationMarkup);
-      $('.notification').hide().fadeIn();
+      
+      var css = {
+        'background-image'   : 'url('+notification['img']+')',
+        'background-position': '6px 6px',
+        'background-repeat'  : 'no-repeat'
+      }
+
+      $('.notification').css(css).hide().fadeIn();
 
     // Test if notification['type'] is [solved] or [info]
     } else if (notification['type'] == o.solved || notification['type'] == o.info) {
@@ -180,28 +193,22 @@ position: fixed;\
 right: 20px;\
 top: 20px;\
 background: #fff;\
-background: rgba(250,250,250,.9);\
-box-shadow: 0 0 0px 1px rgba(0,0,0,.2),0 1px 1px rgba(0,0,0,.3),0 1px 2px rgba(0,0,0,.1),0 1px 0 rgba(255,255,255,.8) inset,0 -1px 0 rgba(0,0,0,.1) inset,0 -80px 40px -40px rgba(0,0,0,.1) inset;\
+background-color: rgba(250,250,250,.9);\
+//box-shadow: 0 0 0px 1px rgba(0,0,0,.2),0 1px 1px rgba(0,0,0,.3),0 1px 2px rgba(0,0,0,.1),0 1px 0 rgba(255,255,255,.8) inset,0 -1px 0 rgba(0,0,0,.1) inset,0 -80px 40px -40px rgba(0,0,0,.1) inset;\
+box-shadow: 0 1px 1px rgba(0,0,0,.3),0 1px 2px rgba(0,0,0,.1);\
 border-radius: 4px;\
+border: 3px solid grey;\
 width: 200px;\
 font-family: "Helvetica Neue", sans-serif;\
 padding: 10px 10px 10px 60px;\
 color: #333;\
 text-decoration: none;\
 }\
-.notification:before {\
-position: absolute;\
-left: 0;\
-right: 0;\
-content: ":)";\
-margin: -4px 20px;\
-font-size: 36px;\
+.notification.problem {\
+border: 3px solid red;\
 }\
-.notification.problem:before {\
-content: ":(";\
-}\
-.notification.info:before {\
-content: "!!";\
+.notification.solved {\
+border: 3px solid green;\
 }\
 .notification-title {\
 margin: 0 0 5px 0;\
