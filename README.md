@@ -49,8 +49,10 @@ Since Twitter disabled their v1 API we had to switch to an PHP wrapper to handle
 #### PHP
 
 * Upload the files inside the `php/` folder to your web server which supports PHP.
-* Open the the `json.php` file and change the following values:  
-  
+* Open the the `json.php` file and change the following values: 
+
+### 
+
     $twitteruser = "StatusJS";
     $consumerkey = "Xjs89sk98sVSHKA7AJs72";
     $consumersecret = "sucmV8A7s74js8hfFDhS72MXhg78SjS87Sh2HVyY";
@@ -62,6 +64,8 @@ Since Twitter disabled their v1 API we had to switch to an PHP wrapper to handle
 * Upload rather `status.js` or `status.min.js` to your webserver
 * Open the the `status*.js` file and replace:  
   
+### 
+
     http://yourdomain.com/status/json.php
 
 with the actual URL of your `json.php` file.
