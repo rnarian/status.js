@@ -14,7 +14,7 @@ function statusJS(options) {
   var o = $.extend(defaults, options);
 
   // Get latest tweet
-  $.getJSON("https://api.twitter.com/1/statuses/user_timeline/"+o.user+".json?count=1&include_rts=1&callback=?", function(data) {
+  $.getJSON("http://yourdomain.com/status/json.php", function(data) {
      
      var notification = {
         'text'       : data[0].text,
