@@ -1,4 +1,4 @@
-## StatusJS
+## status.js
 
 ### jQuery Plugin to display status notifications based on twitter updates. 
 
