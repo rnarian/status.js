@@ -2,9 +2,9 @@
 
 ### jQuery Plugin to display status notifications based on twitter updates. 
 
-Problem updates are sticky by default. Solved/Info updates fade out after stated delay and will only be shown once (cookie).
+"Problem" updates are sticky by default. "Solved/Info" updates fade out after stated delay and will only be shown once (via cookie).
 
-Since Twitter disabled their v1 API we had to switch to an PHP wrapper to handle the OAuth authentication. More informations below
+Since Twitter disabled their v1 API we had to add a PHP wrapper to handle the OAuth authentication. More informations below.
 
 ## Informations
 
@@ -36,7 +36,7 @@ Since Twitter disabled their v1 API we had to switch to an PHP wrapper to handle
 
 ### Setup a Twitter application
 
-1. Visit https://dev.twitter.com/apps/ and sign in using your Twitter username and password.  
+1. Visit https://dev.twitter.com/apps/ and sign in using your Twitter account.  
 1. Select 'Create new application' and enter the application details.  
   1. The name and description can be anything you like.  
   1. The website field can be your main website and doesn’t have to be the site where your Twitter feed or feeds are located.  
